@@ -58,7 +58,7 @@ def parse_my():
         print(q.text),
         a = raw_input('(y/n)?')
         if a == 'y' or a == 'Y':
-            return re.search('id=(\d*)', q.attrs['href']).group(1), q.text
+            return re.search('id=(\d+)', q.attrs['href']).group(1), q.text
     sys.exit(0)
 
 
@@ -66,7 +66,7 @@ def parse_course(course):
     r = session.get(url + '/course/view.php?id=' + course)
     soup = BeautifulSoup(r.text, 'lxml')
     quiz = soup.find('a', href=re.compile('[^"].*?/mod/quiz/view.php\?id=.*?[^"]'))
-    return re.search('id=(\d*)', quiz.attrs['href']).group(1)
+    return re.search('id=(\d+)', quiz.attrs['href']).group(1)
 
 
 def parse_quiz(quiz):
@@ -85,7 +85,7 @@ def parse_quiz(quiz):
     r = session.post(url + '/mod/quiz/startattempt.php', data_startattempt)
     soup = BeautifulSoup(r.text, 'lxml')
     attempt = soup.find('a', href=re.compile('[^"].*?/mod/quiz/attempt.php\?attempt=.*?[^"]'))
-    attempt = re.search('attempt=(\d*)', attempt.attrs['href']).group(1)
+    attempt = re.search('attempt=(\d+)', attempt.attrs['href']).group(1)
     data_processattempt = {
         'attempt': attempt,
         'finishattempt': '1',
@@ -117,7 +117,7 @@ def parse_review(attempt, lesson):
     while True:
         r = session.get('%s/mod/quiz/review.php?attempt=%s&page=%s' % (url, attempt, str(page)))
         soup = BeautifulSoup(r.text, 'lxml')
-        for q in soup.find_all('div', id=re.compile('q[\d*]')):
+        for q in soup.find_all('div', id=re.compile('q\d+')):
             if 'truefalse' in q.attrs['class']:
                 if q.find(class_='qtext').text in r_pd:
                     continue
@@ -134,7 +134,7 @@ def parse_review(attempt, lesson):
                     repeat = 0
                     n_dx = n_dx + 1
                     f_dx.write(q.find(class_='qtext').text + '\n')
-                    for m in q.find_all(class_=re.compile('r[\d*]')):
+                    for m in q.find_all(class_=re.compile('r\d+')):
                         f_dx.write(m.text + '\n')
                     f_dx.write(q.find(class_='rightanswer').text + '\n')
                     f_dx.write('\n')
@@ -145,7 +145,7 @@ def parse_review(attempt, lesson):
                     repeat = 0
                     n_ddx = n_ddx + 1
                     f_ddx.write(q.find(class_='qtext').text + '\n')
-                    for m in q.find_all(class_=re.compile('r[\d*]')):
+                    for m in q.find_all(class_=re.compile('r\d+')):
                         f_ddx.write(m.text + '\n')
                     f_ddx.write(q.find(class_='rightanswer').text + '\n')
                     f_ddx.write('\n')
