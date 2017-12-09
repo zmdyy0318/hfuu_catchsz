@@ -10,7 +10,8 @@ sys.setdefaultencoding('utf-8')
 
 now = datetime.datetime.now().strftime('%Y-%m-%d')
 headers = {'User-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.1 Safari/603.1.30'}
-url = 'http://210.45.88.100'
+# url = 'http://210.45.88.100'
+url = 'http://eclass.hfuu.edu.cn'
 session = requests.session()
 session.headers = headers
 
@@ -65,8 +66,14 @@ def parse_my():
 def parse_course(course):
     r = session.get(url + '/course/view.php?id=' + course)
     soup = BeautifulSoup(r.text, 'lxml')
-    quiz = soup.find('a', href=re.compile('[^"].*?/mod/quiz/view.php\?id=.*?[^"]'))
-    return re.search('id=(\d+)', quiz.attrs['href']).group(1)
+    quiz = soup.find_all('a', href=re.compile('[^"].*?/mod/quiz/view.php\?id=.*?[^"]'))
+    for q in quiz:
+        print('Catch view'),
+        print(q.text),
+        a = raw_input('(y/n)?')
+        if a == 'y' or a == 'Y':
+            return re.search('id=(\d+)', q.attrs['href']).group(1), q.text
+    sys.exit(0)
 
 
 def parse_quiz(quiz):
@@ -170,8 +177,8 @@ def main():
         check_network()
         while parse_login() is False:
             pass
-        course, lesson = parse_my()
-        quiz = parse_course(course)
+        course, lesson1 = parse_my()
+        quiz, lesson2 = parse_course(course)
         while tolerance is None:
             tolerance = re.match('\d', raw_input('Plase input the tolerance[0-9]:'))
         tolerance = int(tolerance.group())
@@ -180,6 +187,7 @@ def main():
             print('Num:'+str(num)),
             print(str(repeat) + '<=' + str(tolerance)),
             attempt = parse_quiz(quiz)
+            lesson = lesson1 + '-' + lesson2
             repeat_r = parse_review(attempt, lesson)
             if repeat_r == 0:
                 repeat = 0
